@@ -1,0 +1,103 @@
+NETPROPHET
+------------------------------------------------------
+	NetProphet is a novel algorithm for inferring transcriptional regulatory networks from gene expression data. For every possible interaction between a TF and a target gene, NetProphet computes a confidence score by combining the score from its coexpression analysis with the score from its DE analysis. The coexpression score is a LASSO regression coefficient reflecting the degree to which coexpression patterns allow the expression level of the putative target gene to be predicted from that of the TF. The DE score is the significance statistic (e.g. log odds, or -log(pval)) that the putative target is differentially expressed when the TF is perturbed, given the available replicate expression profiles.
+
+SYSTEM REQUIREMENTS
+------------------------------------------------------
+	* Sequential NetProphet
+		* R (>= version 2.10)
+	* Parallelized NetProphet
+		* R (>= version 2.2.0)
+		* Grid Engine
+			* Tested on Version: 6.2u5-4
+		* 11 processors, each with at least 20GB of memory
+		* A MPI distribution (C libraries)
+			* Tested on openmpi version 1.4.3-2.1ubuntu3bck
+			* See http://www.stats.uwo.ca/faculty/yu/Rmpi/
+
+INSTALLATION INSTRUCTIONS
+------------------------------------------------------
+1. Unpack NetProphet
+	tar -zxvf netprophet_VERSION.tar.gz
+2. Execute the following lines or add them to your shell configuration file
+	export NETPROPHET_DIR=$HOME/<netprophet_location>/CODE/
+	export PATH=${NETPROPHET_DIR}:$PATH
+3. Install LARs
+	R CMD INSTALL $NETPROPHET_DIR/lars_0.9-8.tar.gz
+	* Note that the version of LARs that NetProphet uses (and is being installed) returns the lars path when calling lars(). The original version of the LARs package does not return the path.
+4. (Parallelized Only) Install Rmpi - requires a MPI dsitribution
+	R --no-init-file CMD INSTALL $NETPROPHET_DIR/Rmpi_0.5-9.tar.gz
+	
+EXAMPLE USAGE
+------------------------------------------------------
+	* Sequential NetProphet
+		* Global Shrinkage
+			* Yeast Subnetwork
+				netprophet -m -t ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.expr -r ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/rdata.expr -a ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/allowed.adj -p ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.pert.adj -d ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/signed.desig.adj -g ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/orfs -f ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/tf.orfs	
+		* Local Shrinkage
+			* Yeast Subnetwork
+			netprophet -m -l -t ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.expr -r ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/rdata.expr -a ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/allowed.adj -p ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.pert.adj -d ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/signed.desig.adj -g ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/orfs -f ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/tf.orfs
+	* Parallelized NetProphet
+		* Global Shrinkage
+			* Yeast Whole Network
+				netprophet -m -c -t ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/data.expr -r ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/rdata.expr -a ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/allowed.adj -p ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/data.pert.adj -d ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/signed.desig.adj -g ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/orfs -f ${NETPROPHET_DIR}/../DATA/WHOLE_YEAST_NETWORK/INPUT/tf.orfs
+			* Yeast Subnetwork
+				netprophet -m -c -t ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.expr -r ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/rdata.expr -a ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/allowed.adj -p ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/data.pert.adj -d ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/signed.desig.adj -g ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/orfs -f ${NETPROPHET_DIR}/../DATA/YEAST_SUBNETWORK/INPUT/tf.orfs
+
+CALCULATING THE DIFFERENTIAL EXPRESSION COMPONENT
+------------------------------------------------------
+	* Microarray expression profiling data:
+		* For each TF perturbation, for each gene in the perturbation condition, we recommend that you use LIMMA to calculate the log odds that the gene is differentially expressed in the perturbation condition compared to the wild type (WT) condition. The differential expression component is a signed confidence score Dij, which is calculated using the log odds score Li(j) and the log2-fold change Yi(j) of gene j and TF i as follows.
+Dij =  Li(j)*sgn(Yi(j) when Li(j) > 0 and Dij =  0 when Li(j) <= 0
+
+	* RNA-Seq expression profiling data: 
+		* For each TF perturbation, we recommend that you use Cuffdiff to calculate the significance of differential expression (i.e. the uncorrected p-value and the FDR-adjusted p-value) of each gene in the perturbation condition compared to the WT condition. The differential expression component is a signed confidence score Dij, which is calculated using the uncorrected p-value Pi(j), the FDR-adjusted p-value Fi(j), and the log2-fold change Yi(j) of gene j and TF i as follows.
+Dij =  -ln(Pi(j))*sgn(Yi(j) when Fi(j) <= 0.05 and Dij =  0 when Fi(j) >= 0.05
+
+GLOBAL VS. LOCAL SHRINKAGE
+------------------------------------------------------
+NetProphet uses LASSO regression as its coexpression component to learn a sparse linear model that predicts the jth gene’s expression level in expression measurment condition k, Yjk, from a weighted combination of the regulator’s expression levels in expression measurement condition k. LASSO chooses the influence coefficients Bij, which describe the influence of regulator i on gene j, that minimize the sum of the squared prediction errors and a term called the L1 penalty. 
+
+The L1 penalty is a ‘‘shrinkage term’’ that keeps the model sparse to avoid overfitting. The L1 penalty is scaled, relative to the sum of squared prediction errors, by a parameter t. When t is 0, the optimization of B is equivalent to ordinary least squares regression. As t grows, components of B are forced to zero, yielding a sparser solution. 
+
+	LOCAL: In the typical LASSO regression, e.g. Inferelator, a separate t is fit for each target gene.
+
+	GLOBAL: NetProphet implements a modification to the typical LASSO regression which uses a single, global weighting parameter t for all target genes. This reduces the number of learned parameters by more than 5000 (for the full Yeast network), thereby reducing the risk of overfitting the data. Parameter t is determined using 10-fold cross-validation, minimizing predictive error. 
+	
+	GLOBAL SHRINKAGE IS RECOMMENDED
+
+DESCRIPTION OF MAJOR FILES
+------------------------------------------------------
+	Required Input Files:
+		1. targetExpressionFile - A space separated matrix of expression values of size # of target genes x # of expression conditions. Each row contains the expression of a single target gene. Each column contains the expression of all genes in an individual sample.
+		2. regulatorExpressionFile - A space separated matrix of expression values of size # of regulator genes x # of expression conditions. Each row contains the expression of a single regulator gene. Each column contains the expression of all genes in a single condition.
+		3. allowedMatrixFile - A space separated binary adjacency matrix of size # of regulator genes (rows) x # of target genes (columns). For each possible interaction between regulator i (Ri) and target gene j (Tj), entry Mij is set to 1 if Ri is allowed to regulate Tj and 0 if Ri is not allowed to regulate Tj. Users should disallow auto-regulation by setting Mij = 0 when Ri==Tj.
+		4. perturbationMatrixFile - A space separated binary matrix of size # of target genes (rows) x # of expression conditions (columns). Each entry Mij is set to 0 if target gene i (Ti) is not experimentally perturbed (e.g. overexpressed, knocked down, or knocked out) in condition j (Cj). Thus, Mij = 1 if Ti is perturbed in Cj and Mij = 0 otherwise.
+		5. differentialExpressionMatrixFile - A space separated adjacency matrix of size # of regulator genes (rows) x # of target genes (columns). For each possible interaction between regulator i (Ri) and target gene j (Tj), set entry Mij to the signed logged differential expression significance of Tj when Ri is perturbed. If Ri has not been perturbed, then set Mij = 0 for all j. See above section titled "CALCULATING THE DIFFERENTIAL EXPRESSION COMPONENT" for more information.
+
+	Optional Input Files:	
+		6. targetGeneNamesFile - A file listing one target gene identifier per line. The target gene identifiers should be ordered as they are in each required matrix.
+		7. regulatorGeneNamesFile - A file listing one regulator gene identifier per line. The regulator gene identifiers should be ordered as they are in each required matrix.
+		
+	Output Files:
+		1. lasso.adjmtr - A space separated adjacency matrix of size # of regulator genes x # of target genes. Each entry Mij of matrix M is the LASSO regression coefficient of the interaction between regulator Ri and target gene Tj. In this matrix, interactions with higher absolute value scores should be trusted more than interactions with lower absolute value scores.
+		2. combined_model.adjmtr - A space separated adjacency matrix of size # of regulator genes x # of target genes. Each entry Mij of matrix M is the NetProphet score of the interaction between regulator Ri and target gene Tj. In this matrix, interactions with higher scores are more likely to be direct regulatory interactions.	
+	Optional Output Files:
+		3. combined_model.adjlst - A tab separated adjacency list. Each row lists the following pieces of information about an interaction between a regulator i (Ri) and target gene j (Tj) in the order in which they appear below. This file is output if both the targetGeneNamesFile and regulatorGeneNamesFile are input.
+			* Regulator identifier
+			* Target gene identifier
+			* NetProphet score
+			* Differential expression interaction sign: Activation = 1; repression = -1.
+			* LASSO interaction sign: Activation = 1; repression = -1.
+			* Combined sign: The mean of the differential expression interaction sign and the LASSO interaction sign.
+			* NetProphet score rank: The rank of this interaction out of all interactions. Interactions with lower ranks should be trusted more than interactions with higher ranks.
+
+REFERENCES
+------------------------------------------------------
+Haynes BC, Maier EJ, Kramer MH, Wang PI, Brown H, Brent MR. 2013. "Mapping functional transcription factor networks from gene expression data". Genome Res. 
+
+Smyth GK. 2005. "Limma: Linear models for microarray data". Bioinformatics and computational biology solutions using R and Bioconductor (ed. Gentleman R, et al.), pp. 397–420. Springer, New York.
+
+Smyth GK. 2004. "Linear models and empirical Bayes methods for assessing differential expression in microarray experiments". Stat Appl Genet Mol Biol 3: Article 3.
+
+Trapnell C, Roberts A, Goff L, Pertea G, Kim D, Kelley DR, Pimentel H, Salzberg SL, Rinn JL, Pachter L. 2012. "Differential gene and transcript expression analysis of RNA-seq experiments with TopHat and Cufflinks". Nat Protoc.
