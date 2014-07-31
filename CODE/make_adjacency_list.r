@@ -22,10 +22,13 @@ buildInteractions <- function(M,B,D,net_genes,net_regulators,GIDS,RIDS,cutoff)
 
 M <- as.matrix(read.table(file.path(outputDirectory, combinedAdjMtrFileName)))
 B <- as.matrix(read.table(file.path(outputDirectory, lassoAdjMtrFileName)))
-D <- as.matrix(read.table(differentialExpressionMatrixFile))
-RIDS <- as.matrix(read.table(regulatorGeneNamesFileName))
-GIDS <- as.matrix(read.table(targetGeneNamesFileName))
-
+D <- as.matrix(read.table(inputTables$inputFiles$differentialExpressionMatrixFile))
+RIDS <- as.matrix(read.table(inputTables$inputFiles$regulatorGeneNamesFileName))
+GIDS <- as.matrix(read.table(inputTables$inputFiles$targetGeneNamesFileName))
+# D <- unchanged_de_component
+# RIDS <- regulatorsNames
+# GIDS <- targetsNames
 interactions <- buildInteractions(M,B,D,GIDS,RIDS,GIDS,RIDS,0)
+as.table.interactions = as.table(interactions)
 write.table(as.table(interactions),file=file.path(outputDirectory,combinedAdjLstFileName),row.names=FALSE,quote=FALSE,sep='\t')
 

@@ -42,16 +42,20 @@ args <- c(
 # targetGeneNamesFileName <- toString(args[13])
 
 
+#   
+ tdata <- inputTables$tdata
+ rdata <- inputTables$rdata
+ pert <-inputTables$pert
+ allowed <- inputTables$allowed
+ de_component <- inputTables$de_component
+ regulatorsNames <- inputTables$regulatorsName
+  targetsNames <- inputTables$targetsNames
+unchanged_de_component <- inputTables$de_component
 
+# rdata <- as.matrix(read.table(regulatorExpressionFile))
+# allowed <- as.matrix(read.table(allowedMatrixFile))
+# pert <- as.matrix(read.table(perturbationMatrixFile))
 
-
-
-source("./CODE/pre_process.R", local=TRUE)
-
-#rdata <- as.matrix(read.table(regulatorExpressionFile))
-#allowed <- as.matrix(read.table(allowedMatrixFile))
-#pert <- as.matrix(read.table(perturbationMatrixFile))
-de_component <- as.matrix(read.table(differentialExpressionMatrixFile))
 targets <- seq(dim(tdata)[1])
 
 source("./CODE/global.lars.regulators.r", local=TRUE)
@@ -65,7 +69,6 @@ if(microarrayFlag == 0) {
 
 ## Center data
 tdata <- tdata - apply(tdata,1,mean)
-rdata <- rdata - apply(rdata,1,mean)
 
 ## Scale data
 t.sd <- apply(tdata,1,sd)
@@ -97,7 +100,10 @@ write.table(lasso_component,file.path(outputDirectory,lassoAdjMtrFileName),row.n
 ## Perform model averaging to get final NetProphet Predictions
 source("./CODE/combine_models.r", local=TRUE)
 
-if( file.exists(regulatorGeneNamesFileName) & file.exists(targetGeneNamesFileName)){
-	source("./CODE/make_adjacency_list.r", local=TRUE)
+# if( file.exists(inputFiles$regulatorGeneNamesFileName) & file.exists(inputFiles$targetGeneNamesFileName)){
+# 	source("./CODE/make_adjacency_list.r", local=TRUE)
+# }
+if( !is.null(regulatorsNames) & !is.null(targetsNames)){
+  source("./CODE/make_adjacency_list.r", local=TRUE)
 }
 
