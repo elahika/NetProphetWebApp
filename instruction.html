@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- TemplateBeginEditable name="doctitle" -->
+<title>Documentation</title>
+<!-- TemplateEndEditable -->
+<!-- TemplateEndEditable -->
+<!-- TemplateBeginEditable name="head" -->
+<!-- TemplateEndEditable -->
+<link rel=stylesheet" href="./www/font-awesome-4.1.0/css/font-awesome.min.css">
+</head>
+
+<body>
+<p> Welcome to the NetProphet Online Service!</p>
+<p id="test" style="display:none;">This is an online version of the NetProphet software. You can upload your data in this website according to the instructions below, then NetProphet is ran on the input files and you will receive the results of NetProphet calculations. The result is shown to you in a searchable table format. Also, an interactive network graph is visualized based on your data. You can also download and save the output file on your computer and do any further analysis as you want.</p>
+<p>Below you can find all the information about NetProphet, how to work with this web service</p>
+<h4><a href="javascript:toggle('netp');">What is NetProphet</a></h4>
+<p id="netp" style="display:none;">NetProphet is a novel algorithm for inferring transcriptional regulatory networks from gene expression data. For every possible interaction between a TF and a target gene, NetProphet computes a confidence score by combining the score from its coexpression analysis with the score from its DE analysis. The coexpression score is a LASSO regression coefficient reflecting the degree to which coexpression patterns allow the expression level of the putative target gene to be predicted from that of the TF. The DE score is the significance statistic (e.g. log odds, or -log(pval)) that the putative target is differentially expressed when the TF is perturbed, given the available replicate expression profiles.</p>
+
+<h4>><a href="javascript:toggle('netp');">Required input files</h4>
+
+  
+   <strong>Gene Expression File</strong> - A space separated matrix of expression values of size 'number of genes' x 'number of expression' conditions. Each row contains the expression of a single gene (regulator/target). Each column contains the expression of all genes in an individual sample.
+  
+  <p><strong>Perturbation Matrix File</strong> - is the file containing the information about the target genes that are experimentally perturbed. This file is accepted in two different formats depending on the 'Gene Expression' file:</p>
+  <p>If Gene expression matrix columns are labed, then the 'Perturbation Matrix' is a </p>
+  <p>A space separated binary matrix of size # of target genes (rows) x # of expression conditions (columns). Each entry Mij is set to 0 if target gene i (Ti) is not experimentally perturbed (e.g. overexpressed, knocked down, or knocked out) in condition j (Cj). Thus, Mij = 1 if Ti is perturbed in Cj and Mij = 0 otherwise.</p>
+  <p><br />
+     <strong>Differential Expression Matrix File</strong> - A space separated adjacency matrix of size # of regulator genes (rows) x # of target genes (columns). For each possible interaction between regulator i (Ri) and target gene j (Tj), set entry Mij to the signed logged differential expression significance of Tj when Ri is perturbed. If Ri has not been perturbed, then set Mij = 0 for all j. See above section titled &quot;CALCULATING THE DIFFERENTIAL EXPRESSION COMPONENT&quot; for more information.</p>
+  <p> <strong>Target Gene Names File </strong>- A file listing one target gene identifier per line. The target gene identifiers should be ordered as they are in each required matrix.</p>
+  <p><br />
+     <strong>Regulator Gene Names File</strong> - A file listing one regulator gene identifier per line. The regulator gene identifiers should be ordered as they are in each required matrix.</p>
+<p>&nbsp;</p>
+<h4>output file </h4>
+<p><strong> combined_model.adjmtr </strong>- A space separated adjacency matrix of size # of regulator genes x # of target genes. Each entry Mij of matrix M is the NetProphet score of the interaction between regulator Ri and target gene Tj. In this matrix, interactions with higher scores are more likely to be direct regulatory interactions. </p>
+<p><strong>combined_model.adjlst</strong> - A tab separated adjacency list. Each row lists the following pieces of information about an interaction between a regulator i (Ri) and target gene j (Tj) in the order in which they appear below. This file is output if both the targetGeneNamesFile and regulatorGeneNamesFile are input.</p>
+<p>* Regulator identifier<br />
+* Target gene identifier<br />
+* NetProphet score<br />
+* Differential expression interaction sign: Activation = 1; repression = -1.<br />
+* LASSO interaction sign: Activation = 1; repression = -1.<br />
+* Combined sign: The mean of the differential expression interaction sign and the LASSO interaction sign.<br />
+* NetProphet score rank: The rank of this interaction out of all interactions. Interactions with lower ranks should be trusted more than interactions with higher ranks.</p>
+<p><Strong>CALCULATING THE DIFFERENTIAL EXPRESSION COMPONENT</strong></p>
+<p>* Microarray expression profiling data:<br />
+* For each TF perturbation, for each gene in the perturbation condition, we recommend that you use LIMMA to calculate the log odds that the gene is differentially expressed in the perturbation condition compared to the wild type (WT) condition. The differential expression component is a signed confidence score Dij, which is calculated using the log odds score Li(j) and the log2-fold change Yi(j) of gene j and TF i as follows.<br />
+Dij =  Li(j)*sgn(Yi(j) when Li(j) &gt; 0 and Dij =  0 when Li(j) &lt;= 0</p>
+<p> * RNA-Seq expression profiling data: <br />
+  * For each TF perturbation, we recommend that you use Cuffdiff to calculate the significance of differential expression (i.e. the uncorrected p-value and the FDR-adjusted p-value) of each gene in the perturbation condition compared to the WT condition. The differential expression component is a signed confidence score Dij, which is calculated using the uncorrected p-value Pi(j), the FDR-adjusted p-value Fi(j), and the log2-fold change Yi(j) of gene j and TF i as follows.<br />
+  Dij =  -ln(Pi(j))*sgn(Yi(j) when Fi(j) &lt;= 0.05 and Dij =  0 when Fi(j) &gt;= 0.05</p>
+<p>&nbsp;</p>
+
+<script type"text/javascript">
+function toggle(obj){
+	var toggle=document.getElementById(obj);
+	if (toggle.style.display != "none") {
+		toggle.style.display ="none";
+	}
+	else{
+		toggle.style.display= "inline";
+	}
+}
+</script>
+
+</body>
+</html>
