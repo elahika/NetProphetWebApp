@@ -29,6 +29,7 @@ GIDS <- as.matrix(read.table(inputTables$inputFiles$targetGeneNamesFileName))
 # RIDS <- regulatorsNames
 # GIDS <- targetsNames
 interactions <- buildInteractions(M,B,D,GIDS,RIDS,GIDS,RIDS,0)
+as.table.interaction <- NULL
 as.table.interactions = as.table(interactions)
 write.table(as.table(interactions),file=file.path(outputDirectory,combinedAdjLstFileName),row.names=FALSE,quote=FALSE,sep='\t')
 

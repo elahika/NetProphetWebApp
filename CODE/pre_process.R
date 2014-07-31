@@ -20,13 +20,7 @@ buildPertMatrixWithoutHeader <- function(){
 
 builPertMatrixWithHeader <-function(headerLine)
 {
- # pert_input <- read.table(toString(perturbationMatrixFile), sep=",")
 
- 
-#   twoLines <- readLines(targetExpressionFile, n=2)
-#   firstLineFields <- strsplit(twoLines, " ")[[1]]
-#   hdr <- all(is.na(as.numeric(firstLineFields)))
-  
   
   collist <- firstLineFields
   rowlist <-as.character(unlist(targets))
@@ -39,7 +33,9 @@ builPertMatrixWithHeader <-function(headerLine)
 #check to see if tdata has header row(condition names)
 
 twoLines <- readLines(targetExpressionFile, n=2)
+
 firstLineFields <- strsplit(twoLines, " ")[[1]]
+
 hdr <- all(is.na(as.numeric(firstLineFields)))
 if(!hdr) { 
  
@@ -53,10 +49,12 @@ if(!hdr) {
 }
 
 #build Regulator Expression File from target Expression File
+
 rdata<- tdata[match(regulators, targets),] 
 write.table(rdata, "./DATA/YEAST_SUBNETWORK/INPUt/test/rdata.txt",row.names=FALSE, col.names=FALSE,quote=FALSE,sep='\t')
 
 #building allowed matrix, self-regulation is not allowed
+
 a = sapply(regulators, grepl, targets)
 allowed <- t(!a)
 

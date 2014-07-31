@@ -48,10 +48,9 @@ check_files_uploaded <- function(inp) {
 }
 
  
-currentButton <- 0
+#currentButton <- 0
 read_files_to_matrix <-function(input){
   
-
   regulators = as.matrix(read.table(toString(input$regulatorGeneNamesFileName)))
   targets = as.matrix(read.table(toString(input$targetGeneNamesFileName)))
   pert_file <- toString(input$perturbationMatrixFile)
@@ -83,21 +82,21 @@ read_files_to_matrix <-function(input){
   matrixInputFiles =list(tdata = tdata, pert = pert, de_component = de_component, regulatorsNames = regulators, targetsNames = targets,
                          rdata = rdata, allowed = allowed, inputFiles = input)
 }
-buttonClicked2 <- function(newButton){
-  if(newButton == currentButton) return(FALSE)
-  else {
-    currentButton <- newButton
-    return(TRUE)
-  }
-}
-buttonClicked <-function(newButton){
-    if(!buttonClicked2(newButton)){ " Button not clicked yet"}
-    else{NULL}
-  }
-inputFiles1 = NULL
-set_input_files <- function(inputFiles){
-   inputFiles1 <- inputFiles
-}
+#buttonClicked2 <- function(newButton){
+#  if(newButton == currentButton) return(FALSE)
+#  else {
+#    currentButton <- newButton
+#    return(TRUE)
+#  }
+#}
+# buttonClicked <-function(newButton){
+#     if(!buttonClicked2(newButton)){ " Button not clicked yet"}
+#     else{NULL}
+#   }
+# inputFiles1 = NULL
+# set_input_files <- function(inputFiles){
+#    inputFiles1 <- inputFiles
+# }
 
 get_input_fils <-function(){
   return(inputFiles1)
@@ -107,8 +106,7 @@ get_input_fils <-function(){
 shinyServer(function(input, output) {
     AAA <- reactive({
       validate(
-        check_files_uploaded(input),
-        #   buttonClicked(input$getData)
+        check_files_uploaded(input)
       )  
       targetExpressionFile = input$data$datapath
       differentialExpressionMatrixFile = input$DE$datapath
@@ -118,8 +116,7 @@ shinyServer(function(input, output) {
       inputFiles <- list(targetExpressionFile= targetExpressionFile, differentialExpressionMatrixFile=differentialExpressionMatrixFile,
                          perturbationMatrixFile=perturbationMatrixFile, regulatorGeneNamesFileName=regulatorGeneNamesFileName,
                          targetGeneNamesFileName=targetGeneNamesFileName)
-      browser()
-      set_input_files(inputFiles)
+      
       inputTables <- read_files_to_matrix(inputFiles)
     })
     inputDataset <- reactive({
@@ -128,9 +125,6 @@ shinyServer(function(input, output) {
        
      
       inputTables = isolate(AAA())
-
-     
-      browser()
       source("./CODE/run_netprophet.r", local = TRUE)
       
       cat("I'm done")

@@ -1,0 +1,7 @@
+This is a well connected subnetwork of the entire yeast transcriptional network. There are 24 regulators and 176 target genes in this network. The function of this subnetwork is summarized by the GO/KEGG term enrichment from the 200 total genes in this subnetwork as compared to all yeast genes:
+Term	P-Value
+Ribosome	1.1E-6
+Glycolysis / Gluconeogenesis	9.2E-3
+cytosol	1.1E-13
+transcription regulator activity	1.4E-8
+cell wall	1.3E-5
